@@ -7,6 +7,7 @@ class App extends Component{
       radiovalue: '',
       dropdownvalue: 'ACT',
       phoneNumValue: '',
+      jsonValue: '',
     };
     this.inputEmailChange = this.inputEmailChange.bind(this);
     this.radioChange = this.radioChange.bind(this);
@@ -44,17 +45,10 @@ class App extends Component{
     const DropDownChangeObject = new dataObject("State",this.state.dropdownvalue,true);
     const PhoneNumObject = new dataObject("Contact Number",this.state.phoneNumValue,phoneNumberValid);
     const JsonArray = [EmailObject,RadioChange,DropDownChangeObject,PhoneNumObject];
-  
-    var a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    var json = JSON.stringify(JsonArray),
-            blob = new Blob([json], {type: "octet/stream"}),
-            url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = "test.json";
-        a.click();
-        window.URL.revokeObjectURL(url);
+    
+    var json = JSON.stringify(JsonArray);
+    
+    this.setState({jsonValue:json});
   }
    render(){
       return(
@@ -77,7 +71,8 @@ class App extends Component{
             </select><br />
             Contact Number<br />
             <input type ="text" value={this.state.phoneNumValue} onChange={this.phoneNumChange}/><br />
-            <button onClick={this.finalSubmit}>Submit</button>
+            <button onClick={this.finalSubmit}>Submit</button><br /><br />
+            {this.state.jsonValue}
           </div>)
       );
    }
