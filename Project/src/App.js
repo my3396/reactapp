@@ -32,7 +32,7 @@ class App extends Component{
   }
   finalSubmit() {
     const emailValid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(this.state.emailValue);
-    const phoneNumberValid = /[0-9]/.test(this.state.phoneNumValue);
+    const phoneNumberValid = /^[0-9]*$/.test(this.state.phoneNumValue);
     class dataObject {
        constructor(label,value,isValid) {
          this.label=label;
