@@ -39,7 +39,6 @@ class App extends Component{
       }
     });
 
-    console.log("naveen",JSON.stringify(fin_Obj));
     this.setState({finalOutput:JSON.stringify(fin_Obj)});
   }
    render() {
