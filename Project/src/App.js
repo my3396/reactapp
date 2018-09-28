@@ -1,79 +1,67 @@
 import React, { Component } from 'react';
+import Input from './Input.js';
+import Dropdown from './Dropdown.js';
+import Radiogroup from './Radiogroup.js';
+
 class App extends Component{
   constructor(props) {
     super(props);
     this.state = {
-      emailValue: '',
-      radiovalue: '',
-      dropdownvalue: 'ACT',
-      phoneNumValue: '',
-      jsonValue: '',
+      responseData: [],
+      finalOutput: [],
     };
-    this.inputEmailChange = this.inputEmailChange.bind(this);
-    this.radioChange = this.radioChange.bind(this);
-    this.dropDownChange = this.dropDownChange.bind(this);
-    this.phoneNumChange = this.phoneNumChange.bind(this);
-    this.finalSubmit = this.finalSubmit.bind(this);
+    this.submit = this.submit.bind(this);
+    this.updateState = this.updateState.bind(this);
   }
-  inputEmailChange(e) {
-    this.setState({emailValue:e.target.value});
+  updateState(inp) {
+    this.state=Object.assign(this.state,inp);
   }
+  componentDidMount() {
+    fetch("http://cors-anywhere.herokuapp.com/http://ansible-template-engine.herokuapp.com/form").then(response=>{return response.json()}).then(data=>{this.setState({responseData:data})});
+  }
+  submit() {
+    const responseData = this.state.responseData;
+    const fin_Obj = responseData.map(data=>{
+      if(data.type=="email") {
+        const emailValid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(this.state[data.label]);
+          return {label:data.label,value:this.state[data.label],isValid:emailValid}
+      }
+      if(data.type=="telephone") {
+          const phoneNumValid=/^[0-9]*$/.test(this.state[data.label]);
+      
+          return {label:data.label,value:this.state[data.label],isValid:phoneNumValid}
+      }
+      if(data.isHidden==true) {
+        return null;
+      }
+      else {
+        return {label:data.label,value:this.state[data.label],isValid:true}
+      }
+    });
 
-  radioChange(e) {
-    this.setState({radiovalue:e.target.value});
+    console.log("naveen",JSON.stringify(fin_Obj));
+    this.setState({finalOutput:JSON.stringify(fin_Obj)});
   }
-
-  dropDownChange(e) {
-    this.setState({dropdownvalue:e.target.value});
-  }
-
-  phoneNumChange(e) {
-    this.setState({phoneNumValue:e.target.value});
-  }
-  finalSubmit() {
-    const emailValid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(this.state.emailValue);
-    const phoneNumberValid = /^[0-9]*$/.test(this.state.phoneNumValue);
-    class dataObject {
-       constructor(label,value,isValid) {
-         this.label=label;
-         this.value=value;
-         this.isValid=isValid
+   render() {
+     const RenderComponents = this.state.responseData.map((DataEntries)=>{
+       if(DataEntries.type=="email" || DataEntries.type=="telephone") {
+         return (<Input label={DataEntries.label} callBack={(inpu)=>this.updateState(inpu)} />)
        }
-    }
-    const EmailObject = new dataObject("Email Address",this.state.emailValue,emailValid);
-    const RadioChange = new dataObject("Gender",this.state.radiovalue,true);
-    const DropDownChangeObject = new dataObject("State",this.state.dropdownvalue,true);
-    const PhoneNumObject = new dataObject("Contact Number",this.state.phoneNumValue,phoneNumberValid);
-    const JsonArray = [EmailObject,RadioChange,DropDownChangeObject,PhoneNumObject];
-    
-    var json = JSON.stringify(JsonArray);
-    
-    this.setState({jsonValue:json});
-  }
-   render(){
+       if(DataEntries.type=="radio") {
+         return (<Radiogroup label={DataEntries.label} labelValues={DataEntries.value} callBack={(inpu)=>this.updateState(inpu)} />)
+       }
+       if(DataEntries.type=="select") {
+         return (<Dropdown label={DataEntries.label} list={DataEntries.value} defaultValue={DataEntries.default} callBack={(inpu)=>this.updateState(inpu)} />)
+       }
+     });
       return(
         (<div>
-            Email Address<br /> <input type="text" value={this.state.emailValue} onChange={this.inputEmailChange} /><br />
-            Gender <br />
-            <input type="radio" value="male" checked={this.state.radiovalue=="male"} onClick={this.radioChange} />Male<br />
-            <input type="radio" value="female" checked={this.state.radiovalue=="female"} onClick={this.radioChange}/>Female<br />
-            <input type="radio" value="Others" checked={this.state.radiovalue=="Others"} onClick={this.radioChange}/>Others<br />
-            <div>State</div>
-            <select value={this.state.dropdownvalue} onChange={this.dropDownChange}>
-                <option value="NSW">NSW</option>
-                <option value="QLD">QLD</option>
-                <option value="SA">SA</option>
-                <option value="TAS">TAS</option>
-                <option value="VIC">VIC</option>
-                <option value="WA">WA</option>
-                <option value="NT">NT</option>
-                <option value="ACT">ACT</option>
-            </select><br />
-            Contact Number<br />
-            <input type ="text" value={this.state.phoneNumValue} onChange={this.phoneNumChange}/><br />
-            <button onClick={this.finalSubmit}>Submit</button><br /><br />
-            {this.state.jsonValue}
-          </div>)
+           {RenderComponents}
+           <button onClick={this.submit}>Submit</button>
+           <br />
+           <br />
+           {this.state.finalOutput}
+        </div>)
       );
    }
 }
